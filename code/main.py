@@ -145,6 +145,26 @@ class Laser(pygame.sprite.Sprite):
             self.kill()
 
 
+class AnimatedExplosion(pygame.sprite.Sprite):
+    def __init__(self, frames, pos, groups, scale=1):
+        super().__init__(groups)
+        self.frames = frames
+        self.frame_index = 0
+        self.image = frames[self.frame_index]
+        self.rect = self.image.get_rect(center=pos)
+        self.scale = scale
+
+    def update(self, dt):
+        self.frame_index += 30 * dt
+        if self.frame_index >= len(self.frames):
+            self.kill()
+        else:
+            self.image = self.frames[int(self.frame_index)]
+            self.image = pygame.transform.scale(self.image, (int(
+                self.image.get_width() * self.scale), int(self.image.get_height() * self.scale)))
+            self.rect = self.image.get_rect(center=self.rect.center)
+
+
 # --- GAME CLASS ---
 class Game:
     def __init__(self):
@@ -162,6 +182,8 @@ class Game:
         self.meteor_surf = pygame.image.load(
             "images/meteor.png"
         ).convert_alpha()
+        self.explosion_frames = [pygame.image.load(
+            f"images/explosion/{i}.png").convert_alpha() for i in range(21)]
         self.init_ui()
 
         # Groups & Events
@@ -244,11 +266,18 @@ class Game:
             return
 
         # Laser collisions
-        for meteors in pygame.sprite.groupcollide(
-            self.laser_group, self.meteor_group, True, False
-        ).values():
-            for meteor in meteors:
+        for laser in self.laser_group:
+            collided_meteors = pygame.sprite.spritecollide(
+                laser, self.meteor_group, False
+            )
+            for meteor in collided_meteors:
                 meteor.health -= 1
+                laser.kill()
+                if meteor.health <= 0:
+                    meteor.kill()
+                    AnimatedExplosion(
+                        self.explosion_frames, laser.rect.midtop, self.all_sprites
+                    )
 
         # Player collisions
         if (
@@ -262,6 +291,9 @@ class Game:
                 self.player.health -= 1
                 if self.player.health <= 0:
                     self.player.kill()
+                    AnimatedExplosion(
+                        self.explosion_frames, self.player.rect.center, self.all_sprites, scale=5
+                    )
                     self.game_started = False
                 else:
                     self.player.has_collided = True
