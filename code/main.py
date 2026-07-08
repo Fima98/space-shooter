@@ -21,10 +21,15 @@ meteor_surf = pygame.image.load("images/meteor.png").convert_alpha()
 meteor_rect = meteor_surf.get_frect(center=(w // 2, h // 2))
 
 laser_surf = pygame.image.load("images/laser.png").convert_alpha()
-laser_rect = laser_surf.get_frect(bottomleft=(20, h - 20))
+lasers = []
+laser_speed = 500
+laser_cooldown = 0.3
+laser_timer = 0
 
 while running:
     dt = clock.tick(60) / 1000
+    laser_timer += dt
+
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             running = False
@@ -42,6 +47,7 @@ while running:
     if player_direction.length() > 0:
         player_direction = player_direction.normalize()
     player_rect.x += player_direction.x * player_speed * dt
+    player_rect.y += player_direction.y * player_speed * dt
 
     display_surface.fill("black")
 
@@ -54,9 +60,21 @@ while running:
 
     display_surface.blit(player_surf, player_rect)
     display_surface.blit(meteor_surf, meteor_rect)
-    display_surface.blit(laser_surf, laser_rect)
+
+    if laser_timer >= laser_cooldown:
+        laser_rect = laser_surf.get_frect(
+            bottom=(player_rect.top - 10), centerx=player_rect.centerx)
+        lasers.append(laser_rect)
+        laser_timer = 0
+
+    for laser in lasers:
+        laser.y -= laser_speed * dt
+        display_surface.blit(laser_surf, laser)
+        if laser.bottom < 0:
+            lasers.remove(laser)
 
     pygame.display.update()
+    player_direction.update(0, 0)
 
 
 pygame.quit()
