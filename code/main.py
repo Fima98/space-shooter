@@ -160,6 +160,7 @@ class Game:
 
         # Assets & UI
         self.font = pygame.font.Font("images/Oxanium-Bold.ttf", 20)
+        self.score_font = pygame.font.Font("images/Oxanium-Bold.ttf", 36)
         self.meteor_surf = pygame.image.load(
             "images/meteor.png"
         ).convert_alpha()
@@ -277,11 +278,15 @@ class Game:
             hp_surf = self.font.render(
                 f"Health: {self.player.health}", True, WHITE
             )
-            score_surf = self.font.render(f"Score: {self.score}", True, WHITE)
-            self.screen.blit(hp_surf, (10, 10))
-            self.screen.blit(
-                score_surf, (WIDTH // 2 - score_surf.get_width() // 2, 10)
+            score_surf = self.score_font.render(str(self.score), True, WHITE)
+            score_rect = score_surf.get_rect(
+                center=(WIDTH // 2, HEIGHT - 90)
             )
+            border_rect = score_rect.inflate(40, 20)
+            self.screen.blit(hp_surf, (10, 10))
+            self.screen.blit(score_surf, score_rect)
+            pygame.draw.rect(self.screen, WHITE,
+                             border_rect.move(0, -4), 2, 10)
 
         pygame.display.update()
 
