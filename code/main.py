@@ -11,7 +11,8 @@ running = True
 font = pygame.font.Font("images/Oxanium-Bold.ttf", 20)
 game_started = False
 button_text = font.render("START GAME", True, (255, 255, 255))
-text_surface = font.render('', True, (255, 255, 255))
+health_surface = font.render('', True, (255, 255, 255))
+score_surface = font.render('', True, (255, 255, 255))
 
 # --- SPRITE CLASSES ---
 
@@ -174,6 +175,17 @@ button_surf.blit(button_text, button_text.get_rect(center=(110, 30)))
 button_rect = button_surf.get_rect(center=(w // 2, h // 2 + 150))
 
 
+def display_score(score):
+    score_surface = font.render(f'Score: {score}', True, (255, 255, 255))
+    display_surface.blit(
+        score_surface, (w // 2 - score_surface.get_width() // 2, 10))
+
+
+score_value = 0
+score_update_event = pygame.event.custom_type()
+pygame.time.set_timer(score_update_event, 1000)
+
+
 # --- MAIN GAME LOOP ---
 while running:
     dt = clock.tick(60) / 1000
@@ -187,6 +199,8 @@ while running:
                 game_started = True
                 if not player.alive():
                     player = Player(all_sprites, w // 2, h // 2)
+        if event.type == score_update_event and game_started:
+            score_value += 1
         if event.type == meteor_event and game_started:
             random_x = random.randint(
                 10 + int(meteor_surface.get_width()), w - int(meteor_surface.get_width()) - 10)
@@ -221,9 +235,10 @@ while running:
         display_surface.blit(button_surf, button_rect)
 
     if player.alive() and game_started:
-        text_surface = font.render(
+        health_surface = font.render(
             f'Health: {player.health}', True, (255, 255, 255))
-        display_surface.blit(text_surface, (10, 10))
+        display_surface.blit(health_surface, (10, 10))
+        display_score(score_value)
     pygame.display.update()
 
 pygame.quit()
