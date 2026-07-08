@@ -20,6 +20,18 @@ class Player(pygame.sprite.Sprite):
         self.direction = pygame.math.Vector2(0, 0)
         self.speed = 400
 
+        # cooldown
+        self.can_shoot = True
+        self.laser_shoot_time = 0
+        self.laser_cooldown = 0.3
+
+    def laser_timer(self, dt):
+        if not self.can_shoot:
+            self.laser_shoot_time += dt
+            if self.laser_shoot_time >= self.laser_cooldown:
+                self.can_shoot = True
+                self.laser_shoot_time = 0
+
     def update(self, dt):
         keys = pygame.key.get_pressed()
         if keys[pygame.K_a] and self.rect.left > 10:
@@ -37,6 +49,11 @@ class Player(pygame.sprite.Sprite):
         self.rect.x += self.direction.x * self.speed * dt
         self.rect.y += self.direction.y * self.speed * dt
         self.direction.update(0, 0)
+        # SHOOTING
+        self.laser_timer(dt)
+        if self.can_shoot:
+            Laser(self.groups()[0], self.rect.centerx, self.rect.top - 10)
+            self.can_shoot = False
 
 
 class Star(pygame.sprite.Sprite):
@@ -85,10 +102,8 @@ class Laser(pygame.sprite.Sprite):
             self.kill()
 
 
-# --- GROUPS & OBJECT CREATION ---
+# --- GROUPS ---
 all_sprites = pygame.sprite.Group()
-
-# Spawn stars
 for _ in range(20):
     while True:
         star = Star(all_sprites)
@@ -98,23 +113,14 @@ for _ in range(20):
 player = Player(all_sprites, w // 2, h // 2)
 
 
-laser_cooldown = 0.3
-laser_timer = 0
-
 # --- MAIN GAME LOOP ---
 while running:
     dt = clock.tick(60) / 1000
-    laser_timer += dt
 
     # --- EVENT HANDLING ---
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             running = False
-
-    # --- AUTOMATIC SHOOTING ---
-    if laser_timer >= laser_cooldown:
-        Laser(all_sprites, player.rect.centerx, player.rect.top - 10)
-        laser_timer = 0
 
     # --- UPDATE ---
     all_sprites.update(dt)
