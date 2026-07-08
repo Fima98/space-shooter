@@ -8,6 +8,10 @@ display_surface = pygame.display.set_mode((w, h))
 pygame.display.set_caption("Space Shooter")
 clock = pygame.time.Clock()
 running = True
+font = pygame.font.Font("images/Oxanium-Bold.ttf", 20)
+game_started = False
+button_text = font.render("START GAME", True, (255, 255, 255))
+text_surface = font.render('', True, (255, 255, 255))
 
 # --- SPRITE CLASSES ---
 
@@ -164,6 +168,11 @@ meteor_surface = pygame.image.load("images/meteor.png").convert_alpha()
 meteor_event = pygame.event.custom_type()
 pygame.time.set_timer(meteor_event, 400)
 
+button_surf = pygame.Surface((220, 60))
+button_surf.fill((60, 40, 100))
+button_surf.blit(button_text, button_text.get_rect(center=(110, 30)))
+button_rect = button_surf.get_rect(center=(w // 2, h // 2 + 150))
+
 
 # --- MAIN GAME LOOP ---
 while running:
@@ -173,7 +182,12 @@ while running:
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             running = False
-        if event.type == meteor_event:
+        if event.type == pygame.MOUSEBUTTONDOWN and not game_started:
+            if event.button == 1 and button_rect.collidepoint(event.pos):
+                game_started = True
+                if not player.alive():
+                    player = Player(all_sprites, w // 2, h // 2)
+        if event.type == meteor_event and game_started:
             random_x = random.randint(
                 10 + int(meteor_surface.get_width()), w - int(meteor_surface.get_width()) - 10)
             Meteor((all_sprites, meteor_group), random_x, -
@@ -181,23 +195,35 @@ while running:
 
     # --- UPDATE ---
     all_sprites.update(dt)
+
+    # laser collision
     collision_dict = pygame.sprite.groupcollide(
         laser_group, meteor_group, True, False)
     for meteors in collision_dict.values():
         for meteor in meteors:
             meteor.health -= 1
-    if pygame.sprite.spritecollide(player, meteor_group, True):
-        player.health -= 1
-        if player.health <= 0:
-            player.kill()
-        else:
-            player.has_collided = True
+
+    # player collision
+    if player.alive() and player.has_collided == False:
+        if pygame.sprite.spritecollide(player, meteor_group, True):
+            player.health -= 1
+            if player.health <= 0:
+                player.kill()
+                game_started = False
+            else:
+                player.has_collided = True
 
     # --- DRAWING ---
-    if player.health > 0:
-        display_surface.fill("black")
-        all_sprites.draw(display_surface)
+    display_surface.fill((22, 14, 38))
+    all_sprites.draw(display_surface)
 
+    if not game_started:
+        display_surface.blit(button_surf, button_rect)
+
+    if player.alive() and game_started:
+        text_surface = font.render(
+            f'Health: {player.health}', True, (255, 255, 255))
+        display_surface.blit(text_surface, (10, 10))
     pygame.display.update()
 
 pygame.quit()
