@@ -31,9 +31,17 @@ while running:
 
     keys = pygame.key.get_pressed()
     if keys[pygame.K_a] and player_rect.left > 10:
-        player_rect.x -= player_speed * dt
+        player_direction.x -= 1
     if keys[pygame.K_d] and player_rect.right < w - 10:
-        player_rect.x += player_speed * dt
+        player_direction.x += 1
+    if keys[pygame.K_w] and player_rect.top > 10:
+        player_direction.y -= 1
+    if keys[pygame.K_s] and player_rect.bottom < h - 10:
+        player_direction.y += 1
+
+    if player_direction.length() > 0:
+        player_direction = player_direction.normalize()
+    player_rect.x += player_direction.x * player_speed * dt
 
     display_surface.fill("black")
 
