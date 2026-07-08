@@ -146,8 +146,6 @@ class Laser(pygame.sprite.Sprite):
 
 
 # --- GAME CLASS ---
-
-
 class Game:
     def __init__(self):
         pygame.init()
@@ -259,7 +257,7 @@ class Game:
             and not self.player.has_collided
         ):
             if pygame.sprite.spritecollide(
-                self.player, self.meteor_group, True
+                self.player, self.meteor_group, True, pygame.sprite.collide_mask
             ):
                 self.player.health -= 1
                 if self.player.health <= 0:
