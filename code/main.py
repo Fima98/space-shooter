@@ -6,6 +6,7 @@ WIDTH, HEIGHT = 1600, 900
 BG_COLOR = (22, 14, 38)
 BTN_COLOR = (60, 40, 100)
 WHITE = (255, 255, 255)
+AUDIO = {}
 
 # --- SPRITES ---
 
@@ -40,6 +41,7 @@ class Player(pygame.sprite.Sprite):
                 self.rect.centerx,
                 self.rect.top - 10,
             )
+            AUDIO["laser"].play()
             self.can_shoot = False
 
         if self.has_collided:
@@ -184,6 +186,15 @@ class Game:
         ).convert_alpha()
         self.explosion_frames = [pygame.image.load(
             f"images/explosion/{i}.png").convert_alpha() for i in range(21)]
+        # Sounds
+        AUDIO['laser'] = pygame.mixer.Sound("audio/laser.wav")
+        AUDIO['laser'].set_volume(0.1)
+        AUDIO['explosion'] = pygame.mixer.Sound("audio/explosion.wav")
+        AUDIO['explosion'].set_volume(0.1)
+        game_music = pygame.mixer.Sound("audio/game_music.wav")
+        game_music.set_volume(0.1)
+        game_music.play(loops=-1)
+
         self.init_ui()
 
         # Groups & Events
@@ -275,6 +286,7 @@ class Game:
                 laser.kill()
                 if meteor.health <= 0:
                     meteor.kill()
+                    AUDIO['explosion'].play()
                     AnimatedExplosion(
                         self.explosion_frames, laser.rect.midtop, self.all_sprites
                     )
@@ -291,6 +303,7 @@ class Game:
                 self.player.health -= 1
                 if self.player.health <= 0:
                     self.player.kill()
+                    AUDIO['explosion'].play()
                     AnimatedExplosion(
                         self.explosion_frames, self.player.rect.center, self.all_sprites, scale=5
                     )
