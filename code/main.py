@@ -1,4 +1,5 @@
 import random
+
 import pygame
 
 # --- CONSTANTS ---
@@ -296,10 +297,10 @@ class Game:
             self.player
             and self.player.alive()
             and not self.player.has_collided
-        ):
-            if pygame.sprite.spritecollide(
+            and pygame.sprite.spritecollide(
                 self.player, self.meteor_group, True, pygame.sprite.collide_mask
-            ):
+            )
+        ):
                 self.player.health -= 1
                 if self.player.health <= 0:
                     self.player.kill()
